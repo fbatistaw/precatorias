@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Básico - Setor Unificado de Precatórias</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        .section-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .section-content.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-highlight { background-color: #fef08a; padding: 0 2px; border-radius: 2px; }
+        
+        .nav-item.active { background-color: #e0f2fe; color: #0369a1; border-right: 4px solid #0284c7; font-weight: 600;}
+        
+        /* Notification Toast */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #10b981; /* green-500 */
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px 24px;
+            position: fixed;
+            z-index: 50;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased flex h-screen overflow-hidden">
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-72 bg-white border-r border-slate-200 h-full flex flex-col absolute md:relative z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-brand-900 leading-tight">Cartas Precatórias</h1>
+                <p class="text-xs text-slate-500 mt-1">Setor Unificado Cível - Abril/2025</p>
+            </div>
+            <button class="md:hidden text-slate-500 hover:text-slate-800" onclick="toggleSidebar()">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1 px-3">
+                <li>
+                    <button onclick="showSection('inicio')" class="nav-item active w-full flex items-center text-left px-4 py-3 text-sm text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+                        <i class="fas fa-home w-6 text-center mr-2 text-slate-400"></i> Início & Regras Gerais
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showSection('filas')" class="nav-item w-full flex items-center text-left px-4 py-3 text-sm text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+                        <i class="fas fa-tags w-6 text-center mr-2 text-slate-400"></i> Filas e Observações
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showSection('custas')" class="nav-item w-full flex items-center text-left px-4 py-3 text-sm text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+                        <i class="fas fa-file-invoice-dollar w-6 text-center mr-2 text-slate-400"></i> Custas e Guias
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showSection('documentos')" class="nav-item w-full flex items-center text-left px-4 py-3 text-sm text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+                        <i class="fas fa-file-contract w-6 text-center mr-2 text-slate-400"></i> Documentos Essenciais
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showSection('despachos')" class="nav-item w-full flex items-center text-left px-4 py-3 text-sm text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+                        <i class="fas fa-keyboard w-6 text-center mr-2 text-slate-400"></i> Modelos de Despachos
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showSection('portal')" class="nav-item w-full flex items-center text-left px-4 py-3 text-sm text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
+                        <i class="fas fa-laptop-house w-6 text-center mr-2 text-slate-400"></i> Portal Eletrônico / CNPJs
+                    </button>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-100">
+            <a href="https://www.tjsp.jus.br" target="_blank" class="flex items-center justify-center w-full py-2 bg-slate-100 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors">
+                <i class="fas fa-external-link-alt mr-2"></i> Portal TJSP
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full w-full overflow-hidden">
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200 p-4 md:px-8 flex items-center justify-between shadow-sm z-10">
+            <div class="flex items-center">
+                <button class="md:hidden text-slate-600 mr-4 hover:text-brand-600" onclick="toggleSidebar()">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="relative w-full max-w-md hidden sm:block">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput" placeholder="Pesquisar no manual (ex: citação, plantão, 307374)..." 
+                           class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow w-96">
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="text-xs font-medium bg-brand-100 text-brand-700 px-3 py-1 rounded-full">Atualizado: Abr/2025</span>
+            </div>
+        </header>
+
+        <!-- Mobile Search Bar -->
+        <div class="p-4 bg-white border-b border-slate-200 sm:hidden">
+            <div class="relative w-full">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="searchInputMobile" placeholder="Pesquisar..." 
+                       class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 relative" id="mainContent">
+            
+            <section id="inicio" class="section-content active searchable-container">
+                <div class="max-w-4xl mx-auto">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-800 mb-2 searchable">Regras Gerais e Competências</h2>
+                        <p class="text-slate-500 searchable">Normas de distribuição e limites de atuação do Setor Unificado.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h3 class="text-lg font-semibold text-red-600 mb-4 flex items-center searchable">
+                                <i class="fas fa-ban mr-2"></i> NÃO somos competentes
+                            </h3>
+                            <p class="text-sm text-slate-600 mb-3 searchable">Exceto oitivas e estações passivas, não cuidamos das seguintes deprecações:</p>
+                            <ul class="space-y-2 text-sm text-slate-700 searchable">
+                                <li class="flex items-start"><i class="fas fa-times text-red-400 mt-1 mr-2"></i> Estudo psicológico e social</li>
+                                <li class="flex items-start"><i class="fas fa-times text-red-400 mt-1 mr-2"></i> Busca e apreensão de menor</li>
+                                <li class="flex items-start"><i class="fas fa-times text-red-400 mt-1 mr-2"></i> Juizado Especial Criminal</li>
+                                <li class="flex items-start"><i class="fas fa-times text-red-400 mt-1 mr-2"></i> Violência doméstica</li>
+                                <li class="flex items-start"><i class="fas fa-times text-red-400 mt-1 mr-2"></i> Criminal e Júri</li>
+                                <li class="flex items-start"><i class="fas fa-times text-red-400 mt-1 mr-2"></i> Infância e Juventude (e Infracional)</li>
+                                <li class="flex items-start"><i class="fas fa-times text-red-400 mt-1 mr-2"></i> Execuções fiscais da Fazenda Pública (estadual/municipal)</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h3 class="text-lg font-semibold text-brand-700 mb-4 flex items-center searchable">
+                                <i class="fas fa-sitemap mr-2"></i> Distribuição
+                            </h3>
+                            <ul class="space-y-4 text-sm text-slate-700 searchable">
+                                <li><strong>Automática (SAJ):</strong> Inicia-se normalmente por 10... ou 11...</li>
+                                <li><strong>Manual (Setor):</strong> Inicia-se por 00... (Feita manualmente ou excepcionais).</li>
+                                <li class="bg-slate-50 p-3 rounded-lg border border-slate-100 mt-4">
+                                    <span class="font-semibold block mb-1">Regramentos aplicáveis:</span>
+                                    <span class="text-xs">Outro Estado: <strong>Provimento CG 56/2021</strong><br>
+                                    Comarcas de SP: <strong>Comunicado CG 1951/2017</strong></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8 searchable">
+                        <h4 class="font-semibold text-blue-800 mb-2">Comunicação e Aditamentos</h4>
+                        <p class="text-sm text-blue-900 mb-2">
+                            Advogados ou servidores podem encaminhar via SAJ. Servidores (exceto problemas no SAJ) usam <strong>Malote Digital</strong> (obrigatório fazer referência, senão é rejeitado).
+                        </p>
+                        <p class="text-sm text-blue-900">
+                            Aditamentos/Ofícios: Peticionamento Eletrônico Intermediário (advogados) ou e-mail (cartórios, se o advogado não protocolar).
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="filas" class="section-content searchable-container">
+                <div class="max-w-4xl mx-auto">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-800 mb-2 searchable">Filas e Observações do Processo</h2>
+                        <p class="text-slate-500 searchable">Critérios de triagem, siglas (U, P, BA) e filas do Gabinete.</p>
+                    </div>
+
+                    <div class="space-y-4 mb-8">
+                        <!-- U -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 items-start searchable">
+                            <div class="bg-orange-100 text-orange-700 font-bold text-2xl w-12 h-12 flex items-center justify-center rounded-lg flex-shrink-0">U</div>
+                            <div>
+                                <h3 class="font-semibold text-lg text-slate-800">Urgentes</h3>
+                                <p class="text-sm text-slate-600 mt-1">Demandam cumprimento de mandado em até <strong>5 dias</strong>. Aplica-se a: Alimentos, Mandado de Segurança, Busca e Apreensão, Reintegração de posse, ou imposição expressa do Juízo Deprecante. Advogado também pode comprovar urgência.</p>
+                                <div class="bg-yellow-50 text-yellow-800 p-2 rounded text-xs mt-2 font-medium border border-yellow-200">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i> A urgência DEVE sempre estar na Observação do Processo.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- P -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 items-start searchable">
+                            <div class="bg-red-100 text-red-700 font-bold text-2xl w-12 h-12 flex items-center justify-center rounded-lg flex-shrink-0">P</div>
+                            <div>
+                                <h3 class="font-semibold text-lg text-slate-800">Plantões</h3>
+                                <p class="text-sm text-slate-600 mt-1">Envolve tratamentos médicos de emergência, liminares/tutelas com risco de dano irreparável (ex: pessoa em show, remoção de perfil de rede social). Alvará de Soltura é tratado como P.</p>
+                                <div class="bg-slate-50 text-slate-600 p-2 rounded text-xs mt-2 border border-slate-200 italic">
+                                    Nota: Busca e Apreensão de Veículos como plantonista é raramente deferido (uso moderado).
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BA -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 items-start searchable">
+                            <div class="bg-blue-100 text-blue-700 font-bold text-xl w-12 h-12 flex items-center justify-center rounded-lg flex-shrink-0">BA</div>
+                            <div>
+                                <h3 class="font-semibold text-lg text-slate-800">Busca e Apreensão / Reintegração</h3>
+                                <p class="text-sm text-slate-600 mt-1">Deprecações que envolvam Busca e Apreensões ou Reintegrações de Posse (se não enquadradas diretamente como U ou P por decisão).</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Outros -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm searchable">
+                                <h3 class="font-semibold text-slate-800 flex items-center"><i class="fas fa-gavel text-slate-400 mr-2"></i> Avaliação ou Leilão</h3>
+                                <p class="text-sm text-slate-600 mt-1">Prioritárias se houver peticionamento comprovando urgência ou agendamento de Perito/Leiloeiro.</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm searchable">
+                                <h3 class="font-semibold text-slate-800 flex items-center"><i class="fas fa-user-md text-slate-400 mr-2"></i> Perícia</h3>
+                                <p class="text-sm text-slate-600 mt-1">Questões ligadas a perícias médicas de pessoas internadas ou em outra condição.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2 searchable">Filas de Trabalho do Gabinete</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 searchable">
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-brand-700 mb-2">1. Conclusão</h4>
+                            <ul class="text-sm space-y-2 text-slate-700">
+                                <li><strong>Conclusos - Minuta:</strong> Fila principal. Cartório e Central encaminham.</li>
+                                <li><strong>Conclusos - Seção de audiência:</strong> Oitivas/depoimentos (em branco).</li>
+                                <li><strong>Conclusos - Despacho/Decisão:</strong> Organização do Gabinete.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 class="font-bold text-brand-700 mb-2">2. Petição Juntada</h4>
+                            <ul class="text-sm space-y-2 text-slate-700">
+                                <li><strong>Ag. Análise:</strong> Triagem.</li>
+                                <li>Enviar para conclusão o que precisa despachar.</li>
+                                <li>Enviar para "Ag. Análise cartório" o que só precisa cumprir.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="custas" class="section-content searchable-container">
+                <div class="max-w-4xl mx-auto">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-800 mb-2 searchable">Custas e Análise de Guias</h2>
+                        <p class="text-slate-500 searchable">Regras para Justiça Paga, isenções e valores das guias DARE e FEDTJ.</p>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 text-sm text-yellow-800 searchable">
+                        <i class="fas fa-info-circle mr-2"></i> <strong>Atenção:</strong> Não aceitamos guia sem comprovante de pagamento, nem comprovante sem guia correspondente (conferir código de barras). Não aceitamos agendamento de pagamento.
+                    </div>
+
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 searchable">Justiça Paga - 3 Recolhimentos Obrigatórios</h3>
+                    <div class="space-y-4 mb-8 searchable">
+                        <div class="bg-white p-4 border border-slate-200 rounded-xl shadow-sm flex items-start">
+                            <div class="bg-blue-100 text-blue-600 p-3 rounded-lg mr-4"><i class="fas fa-file-invoice-dollar text-xl"></i></div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">1. Taxa Judiciária (Guia DARE)</h4>
+                                <p class="text-sm text-slate-600 mt-1">Valor de <strong>10 UFESPs</strong> (atualmente R$ 370,20). Obrigatório conferir código de barras e comprovante.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white p-4 border border-slate-200 rounded-xl shadow-sm flex items-start">
+                            <div class="bg-green-100 text-green-600 p-3 rounded-lg mr-4"><i class="fas fa-motorcycle text-xl"></i></div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">2. Diligência do Oficial (Guia Própria BB)</h4>
+                                <p class="text-sm text-slate-600 mt-1">Valor de <strong>3 UFESPs</strong> (R$ 111,06) CADA diligência. (1 diligência por pessoa/endereço. Cônjuges no mesmo endereço = ato único). <br>
+                                Depósito aceito em qualquer Comarca/Fórum (preferencial Ag. 5949-8).</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 border border-slate-200 rounded-xl shadow-sm flex items-start">
+                            <div class="bg-purple-100 text-purple-600 p-3 rounded-lg mr-4"><i class="fas fa-print text-xl"></i></div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">3. Despesas de Impressão (Guia FEDTJ - Cód 201-0)</h4>
+                                <p class="text-sm text-slate-600 mt-1">Equivalente a R$ 1,07 por folha. Inclui carta, rosto, decisão e documentos. (Média de R$ 5,00 já supre na maioria dos casos).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 searchable">Exceções aos Recolhimentos Completos</h3>
+                    <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm searchable">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-50 text-slate-700 border-b border-slate-200">
+                                <tr>
+                                    <th class="py-3 px-4">Parte / Situação</th>
+                                    <th class="py-3 px-4">O que paga?</th>
+                                    <th class="py-3 px-4">Isenção/Detalhe</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-600">
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-slate-800">Prefeituras</td>
+                                    <td class="py-3 px-4">Diligência OJ + Impressão</td>
+                                    <td class="py-3 px-4 text-green-600">Isenta de Taxa Judiciária.</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-slate-800">Fazenda Pública (FESP)</td>
+                                    <td class="py-3 px-4">Impressão (adiantado)</td>
+                                    <td class="py-3 px-4">Isenta de Taxa. Diligências OJ são acertadas mensalmente via lista da Central de Mandados.</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-slate-800">Perícias (Por Perito)</td>
+                                    <td class="py-3 px-4">Apenas Taxa Judiciária</td>
+                                    <td class="py-3 px-4">Não usa OJ.</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-slate-800">Audiências (Sem Intimação OJ)</td>
+                                    <td class="py-3 px-4">Apenas Taxa Judiciária</td>
+                                    <td class="py-3 px-4">Não usa OJ.</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-slate-800">Portal Eletrônico (PJs)</td>
+                                    <td class="py-3 px-4">Apenas Taxa Judiciária</td>
+                                    <td class="py-3 px-4">Citação/Intimação via sistema.</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-medium text-slate-800">Justiça Gratuita / JEC</td>
+                                    <td class="py-3 px-4">Nada</td>
+                                    <td class="py-3 px-4 text-brand-600">Requer cópia da decisão que deferiu ou tarja na CP.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="documentos" class="section-content searchable-container">
+                <div class="max-w-4xl mx-auto">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-800 mb-2 searchable">Documentos Essenciais</h2>
+                        <p class="text-slate-500 searchable">Verifique se a precatória está devidamente instruída conforme a finalidade.</p>
+                    </div>
+
+                    <div class="bg-red-50 text-red-800 p-4 rounded-lg mb-6 border border-red-200 flex items-center searchable">
+                        <i class="fas fa-exclamation-circle text-2xl mr-3"></i>
+                        <div>
+                            <strong>Em TODOS os casos:</strong> Documento "carta precatória" devidamente assinado pelo juiz é obrigatório.
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 searchable">
+                        <div class="bg-white p-5 border border-slate-200 rounded-xl shadow-sm">
+                            <h4 class="font-bold text-slate-800 border-b pb-2 mb-3"><i class="fas fa-bullhorn text-brand-500 mr-2"></i> Citação</h4>
+                            <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                                <li>Inicial ou senha processual</li>
+                                <li>Procuração do advogado do autor (dispensável em alguns casos)</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white p-5 border border-slate-200 rounded-xl shadow-sm">
+                            <h4 class="font-bold text-slate-800 border-b pb-2 mb-3"><i class="fas fa-box-open text-brand-500 mr-2"></i> Penhora de Bens Livres</h4>
+                            <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                                <li>Cálculo atualizado do débito (descrito na precatória ou petição anexa)</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-white p-5 border border-slate-200 rounded-xl shadow-sm">
+                            <h4 class="font-bold text-slate-800 border-b pb-2 mb-3"><i class="fas fa-home text-brand-500 mr-2"></i> Avaliação de Imóvel</h4>
+                            <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                                <li>Termo de penhora</li>
+                                <li>Comprovação intimação executado (se for caso de penhora)</li>
+                                <li>Matrícula do imóvel</li>
+                                <li>Procuração de todas as partes</li>
+                            </ul>
+                            <p class="text-xs text-slate-500 mt-2 bg-slate-50 p-2 rounded">Realizado por OJ. Perito apenas se houver pedido expresso.</p>
+                        </div>
+
+                        <div class="bg-white p-5 border border-slate-200 rounded-xl shadow-sm">
+                            <h4 class="font-bold text-slate-800 border-b pb-2 mb-3"><i class="fas fa-users text-brand-500 mr-2"></i> Audiência</h4>
+                            <ul class="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                                <li>Cópia das principais peças (inicial, contestação ou certidão de revelia, saneador)</li>
+                                <li>Petição de arrolamento das testemunhas</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="despachos" class="section-content searchable-container">
+                <div class="max-w-5xl mx-auto">
+                    <div class="mb-8 flex justify-between items-end">
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-800 mb-2 searchable">Modelos de Despachos e Decisões</h2>
+                            <p class="text-slate-500 searchable">Clique no botão para copiar o código numérico para o SAJ.</p>
+                        </div>
+                    </div>
+
+                    <!-- Abas de Categorias de Despachos -->
+                    <div class="space-y-8">
+                        
+                        <!-- Categoria: Gerais / Incompletos -->
+                        <div class="searchable">
+                            <h3 class="text-xl font-bold text-brand-700 mb-3 border-b-2 border-brand-100 pb-2">Gerais & Incompletos</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Cumpra-se Geral</p><p class="text-sm font-medium">Citação, intimação, constatação</p></div>
+                                    <button onclick="copyText('307374')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>307374</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Falta Custas / Docs</p><p class="text-sm font-medium">Inicial não está em termos</p></div>
+                                    <button onclick="copyText('346564')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>346564</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Prazo Genérico</p><p class="text-sm font-medium">Concessão de prazo</p></div>
+                                    <button onclick="copyText('316195')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>316195</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Pedido Fora Comp.</p><p class="text-sm font-medium">Não analisamos (JG, suspensão)</p></div>
+                                    <button onclick="copyText('313611')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>313611</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Categoria: Penhora, Avaliação e Busca -->
+                        <div class="searchable">
+                            <h3 class="text-xl font-bold text-brand-700 mb-3 border-b-2 border-brand-100 pb-2">Penhora, Avaliação e BA</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Veículos</p><p class="text-sm font-medium">Penhora e avaliação</p></div>
+                                    <button onclick="copyText('250258')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>250258</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Imóveis - OJ</p><p class="text-sm font-medium">Apenas avaliação</p></div>
+                                    <button onclick="copyText('201467')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>201467</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Imóveis - Perito (Paga)</p><p class="text-sm font-medium">Avaliação por perito</p></div>
+                                    <button onclick="copyText('313297')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>313297</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Imóveis - Perito (JG)</p><p class="text-sm font-medium">Avaliação por perito (Gratuita)</p></div>
+                                    <button onclick="copyText('313299')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>313299</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Penhora Imóvel</p><p class="text-sm font-medium">Uso restrito (Geral = Arisp)</p></div>
+                                    <button onclick="copyText('240878')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>240878</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Faturamento</p><p class="text-sm font-medium">Penhora de faturamento</p></div>
+                                    <button onclick="copyText('307378')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>307378</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">BA Bens - Urgente</p><p class="text-sm font-medium">S/ Plantão, SÓ Urgência</p></div>
+                                    <button onclick="copyText('307376')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>307376</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">BA Docs</p><p class="text-sm font-medium">Busca e Apreensão Docs</p></div>
+                                    <button onclick="copyText('201284')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>201284</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow bg-yellow-50">
+                                    <div><p class="text-xs font-semibold text-yellow-700 uppercase">BA Plantão Indeferido</p><p class="text-sm font-medium text-yellow-900">Indefere Plantão/Defere Urgência</p></div>
+                                    <button onclick="copyText('370719')" class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-yellow-300"><i class="far fa-copy mr-1"></i>370719</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Leilão/Praça</p><p class="text-sm font-medium">Prosseguimento</p></div>
+                                    <button onclick="copyText('309760')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>309760</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Penhora Rosto Autos</p><p class="text-sm font-medium text-red-600">DEVOLVER (Não cumprimos)</p></div>
+                                    <button onclick="copyText('297436')" class="bg-red-50 text-red-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-red-100"><i class="far fa-copy mr-1"></i>297436</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Bloco de Texto (Cumpra-se Penhora Livre) -->
+                            <div class="mt-4 bg-slate-50 p-4 border border-slate-200 rounded-lg text-sm text-slate-700">
+                                <p class="font-bold mb-2"><i class="fas fa-pencil-alt text-slate-400 mr-1"></i> Autotexto para Penhora de Bens Livres (junto ao 307374):</p>
+                                <p class="italic bg-white p-3 border border-slate-200 rounded">"Deverá o Oficial de Justiça comparecer ao endereço... encontrando bens, deverá lavrar auto de penhora e avaliação... inserindo esse informe na certidão, bem como intimará o devedor da penhora/avaliação e do prazo de 15 dias para oferecimento de impugnação..."</p>
+                            </div>
+                        </div>
+
+                        <!-- Categoria: Audiências -->
+                        <div class="searchable">
+                            <h3 class="text-xl font-bold text-brand-700 mb-3 border-b-2 border-brand-100 pb-2">Audiências</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Cumprir (+90 dias)</p><p class="text-sm font-medium">Data distante</p></div>
+                                    <button onclick="copyText('322689')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>322689</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Data Próxima (-60)</p><p class="text-sm font-medium">Devolver</p></div>
+                                    <button onclick="copyText('201290')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>201290</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Data Superada</p><p class="text-sm font-medium">Devolver</p></div>
+                                    <button onclick="copyText('201291')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>201291</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Superada c/ Liminar</p><p class="text-sm font-medium">Cumprir só citação+liminar</p></div>
+                                    <button onclick="copyText('308187')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>308187</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Urgente p/ Audiência</p><p class="text-sm font-medium">Tempo hábil p/ OJ</p></div>
+                                    <button onclick="copyText('329716')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>329716</button>
+                                </div>
+                                
+                                <!-- Iniciais Audiência Específicas -->
+                                <div class="col-span-full mt-2"><h4 class="text-sm font-bold text-slate-600 uppercase">Realização de Audiências</h4></div>
+                                
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">1º Passo (Extinguir)</p><p class="text-sm font-medium">Peticionar na Origem</p></div>
+                                    <button onclick="copyText('313284')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>313284</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Tentativa Virtual</p><p class="text-sm font-medium">Intima p/ emails</p></div>
+                                    <button onclick="copyText('311082')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>311082</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Virtual (sem email)</p><p class="text-sm font-medium">OJ vai pedir email</p></div>
+                                    <button onclick="copyText('310903')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>310903</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow bg-blue-50">
+                                    <div><p class="text-xs font-semibold text-blue-700 uppercase">Designar Virtual</p><p class="text-sm font-medium text-blue-900">Agendamento Virtual</p></div>
+                                    <button onclick="copyText('302989')" class="bg-blue-200 text-blue-800 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-blue-300"><i class="far fa-copy mr-1"></i>302989</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow bg-purple-50">
+                                    <div><p class="text-xs font-semibold text-purple-700 uppercase">Designar Mista</p><p class="text-sm font-medium text-purple-900">Agendamento Misto (Setor)</p></div>
+                                    <button onclick="copyText('317024')" class="bg-purple-200 text-purple-800 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-purple-300"><i class="far fa-copy mr-1"></i>317024</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Categoria: Redistribuição / Devoluções / Certidões -->
+                        <div class="searchable">
+                            <h3 class="text-xl font-bold text-brand-700 mb-3 border-b-2 border-brand-100 pb-2">Redistribuição, Devoluções e Aditamentos</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Redist. Endereço</p><p class="text-sm font-medium">Outra Comarca</p></div>
+                                    <button onclick="copyText('205918')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>205918</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Estudo Psicossocial</p><p class="text-sm font-medium">Redist. Vara Família</p></div>
+                                    <button onclick="copyText('252558')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>252558</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Mandado Prisão</p><p class="text-sm font-medium">IIRGD</p></div>
+                                    <button onclick="copyText('316385')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>316385</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Devolver Geral</p><p class="text-sm font-medium text-green-600">Ato cumprido</p></div>
+                                    <button onclick="copyText('238283')" class="bg-green-50 text-green-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-green-100"><i class="far fa-copy mr-1"></i>238283</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Devolver Parcial</p><p class="text-sm font-medium text-green-600">Cumprimento parcial (editar)</p></div>
+                                    <button onclick="copyText('312051')" class="bg-green-50 text-green-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-green-100"><i class="far fa-copy mr-1"></i>312051</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Devolver Prazo</p><p class="text-sm font-medium">Decurso de prazo</p></div>
+                                    <button onclick="copyText('311578')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>311578</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Aditamento OK</p><p class="text-sm font-medium">Em termos</p></div>
+                                    <button onclick="copyText('257444')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>257444</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Aditamento s/ Custas</p><p class="text-sm font-medium text-red-500">Falta Docs/Custas</p></div>
+                                    <button onclick="copyText('320574')" class="bg-red-50 text-red-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-red-100"><i class="far fa-copy mr-1"></i>320574</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Novo Endereço</p><p class="text-sm font-medium">Após negativa, parte indica</p></div>
+                                    <button onclick="copyText('312260')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>312260</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Categoria: Casos Específicos -->
+                        <div class="searchable">
+                            <h3 class="text-xl font-bold text-brand-700 mb-3 border-b-2 border-brand-100 pb-2">Casos Específicos (Citação Hora Certa, Avianca, SP)</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Hora Certa</p><p class="text-sm font-medium">Certidão OJ Hora Certa</p></div>
+                                    <button onclick="copyText('311861')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>311861</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Citação Porteiro</p><p class="text-sm font-medium">Mora no local e citou porteiro</p></div>
+                                    <button onclick="copyText('302816')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>302816</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Avianca Falência</p><p class="text-sm font-medium">Citação s/ Admin. Judicial</p></div>
+                                    <button onclick="copyText('310765')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>310765</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Ato SP Digital</p><p class="text-sm font-medium">Devolver p/ Origem cumprir</p></div>
+                                    <button onclick="copyText('340004')" class="bg-brand-50 text-brand-600 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-brand-100"><i class="far fa-copy mr-1"></i>340004</button>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-center hover:shadow-md transition-shadow bg-red-50">
+                                    <div><p class="text-xs font-semibold text-red-700 uppercase">Suposto Pai</p><p class="text-sm font-medium text-red-900">Processos Suspensos</p></div>
+                                    <button onclick="copyText('316717')" class="bg-red-200 text-red-800 px-3 py-1 rounded text-sm font-mono font-bold hover:bg-red-300"><i class="far fa-copy mr-1"></i>316717</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <section id="portal" class="section-content searchable-container">
+                <div class="max-w-4xl mx-auto">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-slate-800 mb-2 searchable">Portal Eletrônico / PJs e Fazendas</h2>
+                        <p class="text-slate-500 searchable">Modelos de despacho e CNPJs para citação via portal eletrônico do SAJ.</p>
+                    </div>
+
+                    <div class="bg-yellow-50 text-yellow-800 p-4 rounded-lg mb-6 text-sm border border-yellow-200 searchable">
+                        <strong>REGRA DE OURO SP:</strong> Precatórias oriundas de SP + processo de origem digital: DEVOLVER. Eles mesmos podem fazer via portal (Modelo Fazenda: <strong>270946</strong> | Modelo PJ: <strong>306744</strong>). Cumprimos apenas de outros Estados ou autos físicos de SP.
+                    </div>
+
+                    <div class="space-y-6 searchable">
+                        
+                        <!-- União Federal -->
+                        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <div class="bg-blue-50 p-4 border-b border-slate-200">
+                                <h3 class="font-bold text-blue-900"><i class="fas fa-landmark mr-2"></i> União Federal</h3>
+                            </div>
+                            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="font-semibold text-slate-800">PRU (Usucapião, Imóveis, Falências)</p>
+                                    <p class="font-mono text-slate-600 bg-slate-100 px-2 py-1 rounded inline-block my-1">26.994.558/0001-23</p>
+                                    <p class="text-slate-500 text-xs">UNIÃO FEDERAL-PRU</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-slate-800">PRFN (Tributos Federais)</p>
+                                    <p class="font-mono text-slate-600 bg-slate-100 px-2 py-1 rounded inline-block my-1">00.394.460/0216-53</p>
+                                    <p class="text-slate-500 text-xs">UNIÃO FEDERAL - PRFN</p>
+                                </div>
+                                <div class="col-span-1 md:col-span-2 mt-2 pt-2 border-t border-slate-100 flex gap-2">
+                                    <button onclick="copyText('306081')" class="bg-slate-100 text-slate-700 px-3 py-1 rounded hover:bg-slate-200 text-xs font-bold">Réu (306081)</button>
+                                    <button onclick="copyText('305283')" class="bg-slate-100 text-slate-700 px-3 py-1 rounded hover:bg-slate-200 text-xs font-bold">Terceiro (305283)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prefeitura SP -->
+                        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <div class="bg-green-50 p-4 border-b border-slate-200">
+                                <h3 class="font-bold text-green-900"><i class="fas fa-city mr-2"></i> Prefeitura de São Paulo</h3>
+                            </div>
+                            <div class="p-4 flex flex-col md:flex-row justify-between md:items-center text-sm gap-4">
+                                <div>
+                                    <p class="font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded inline-block text-lg">46.395.000/0001-39</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="copyText('300941')" class="bg-slate-100 text-slate-700 px-3 py-1 rounded hover:bg-slate-200 text-xs font-bold">Réu (300941)</button>
+                                    <button onclick="copyText('300944')" class="bg-slate-100 text-slate-700 px-3 py-1 rounded hover:bg-slate-200 text-xs font-bold">Terceiro (300944)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado SP -->
+                        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <div class="bg-slate-50 p-4 border-b border-slate-200">
+                                <h3 class="font-bold text-slate-800"><i class="fas fa-map-marked-alt mr-2"></i> Estado de SP e Autarquias</h3>
+                            </div>
+                            <div class="p-4 flex gap-2">
+                                <button onclick="copyText('290332')" class="bg-slate-100 text-slate-700 px-3 py-1 rounded hover:bg-slate-200 text-xs font-bold">Citação (290332)</button>
+                                <button onclick="copyText('290340')" class="bg-slate-100 text-slate-700 px-3 py-1 rounded hover:bg-slate-200 text-xs font-bold">Int. Réu (290340)</button>
+                                <button onclick="copyText('290341')" class="bg-slate-100 text-slate-700 px-3 py-1 rounded hover:bg-slate-200 text-xs font-bold">Int. Terceiro (290341)</button>
+                            </div>
+                        </div>
+
+                        <!-- PJs Privadas -->
+                        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <div class="bg-orange-50 p-4 border-b border-slate-200">
+                                <h3 class="font-bold text-orange-900"><i class="fas fa-building mr-2"></i> PJs de Direito Privado</h3>
+                            </div>
+                            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
+                                    <span>Grupo Itaú</span>
+                                    <button onclick="copyText('303512')" class="bg-white border border-slate-300 text-slate-700 px-2 py-1 rounded hover:bg-slate-100 text-xs font-bold">303512</button>
+                                </div>
+                                <div class="flex justify-between items-center p-2 bg-slate-50 rounded">
+                                    <span>Demais PJs Privadas</span>
+                                    <button onclick="copyText('305810')" class="bg-white border border-slate-300 text-slate-700 px-2 py-1 rounded hover:bg-slate-100 text-xs font-bold">305810</button>
+                                </div>
+                                <div class="col-span-1 md:col-span-2 border-t border-slate-100 pt-2 mt-2">
+                                    <p class="text-xs text-slate-500 mb-2">2 ou mais requeridos intimados por portal (Qualquer PJ):</p>
+                                    <button onclick="copyText('305325')" class="bg-slate-100 text-slate-700 px-3 py-1 rounded hover:bg-slate-200 text-xs font-bold mr-2">Citação Múltipla (305325)</button>
+                                    <button onclick="copyText('305371')" class="bg-slate-100 text-slate-700 px-3 py-1 rounded hover:bg-slate-200 text-xs font-bold">Intimação Múltipla (305371)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+            
+            <div class="h-24"></div> <!-- Espaçador para rolagem final -->
+        </div>
+    </main>
+
+    <!-- Notificação de Cópia -->
+    <div id="toast">Copiado para a área de transferência!</div>
+
+    <script>
+        // Lógica de Navegação (Menu Lateral)
+        function showSection(sectionId) {
+            // Esconde todas as seções
+            document.querySelectorAll('.section-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Remove active dos botões do menu
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Mostra a seção clicada
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Marca o botão clicado como ativo
+            event.currentTarget.classList.add('active');
+
+            // No mobile, fecha o menu ao clicar
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
+
+            // Reseta a busca se houver navegação manual
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchInputMobile').value = '';
+            resetSearch();
+            
+            // Scroll para o topo
+            document.getElementById('mainContent').scrollTop = 0;
+        }
+
+        // Lógica de Menu Mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Função de Copiar Texto
+        function copyText(text) {
+            // Usa API moderna se disponível
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(showToast);
+            } else {
+                // Fallback para iFrames ou ambientes não seguros
+                let textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast();
+                } catch (err) {
+                    console.error('Falha ao copiar', err);
+                }
+                textArea.remove();
+            }
+        }
+
+        function showToast() {
+            const toast = document.getElementById("toast");
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+        }
+
+        // Lógica de Pesquisa Global
+        const searchInput = document.getElementById('searchInput');
+        const searchInputMobile = document.getElementById('searchInputMobile');
+
+        function performSearch(query) {
+            query = query.toLowerCase().trim();
+            const allSections = document.querySelectorAll('.section-content');
+            
+            if (query === '') {
+                resetSearch();
+                return;
+            }
+
+            // Ativa todas as seções para a pesquisa varrer o DOM inteiro visualmente
+            allSections.forEach(sec => sec.classList.add('active'));
+            
+            const searchableElements = document.querySelectorAll('.searchable');
+            
+            searchableElements.forEach(el => {
+                const text = el.innerText.toLowerCase();
+                const containerElement = el.closest('.bg-white, .bg-slate-50, .grid > div, .space-y-4 > div'); // Pega o card pai
+                
+                if (text.includes(query)) {
+                    if (containerElement) containerElement.style.display = '';
+                } else {
+                    if (containerElement && !containerElement.querySelector('.searchable')?.innerText.toLowerCase().includes(query)) {
+                        containerElement.style.display = 'none';
+                    }
+                }
+            });
+
+            // Lógica específica para os botões de código numérico (Despachos)
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if(btn.innerText.includes(query)) {
+                    let parentCard = btn.closest('.grid > div');
+                    if (parentCard) parentCard.style.display = '';
+                }
+            });
+            
+            // Oculta seções que ficaram vazias após o filtro
+            allSections.forEach(sec => {
+                const visibleElements = Array.from(sec.querySelectorAll('.bg-white, .bg-slate-50, .grid > div')).filter(el => el.style.display !== 'none');
+                if (visibleElements.length === 0) {
+                    sec.classList.remove('active');
+                }
+            });
+        }
+
+        function resetSearch() {
+            // Restaura o display original dos cards
+            document.querySelectorAll('.bg-white, .bg-slate-50, .grid > div, .space-y-4 > div').forEach(el => {
+                el.style.display = '';
+            });
+            
+            // Volta para a aba Início se as outras foram apenas abertas pela pesquisa
+            const activeNav = document.querySelector('.nav-item.active');
+            if (activeNav) {
+                activeNav.click(); 
+            }
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            searchInputMobile.value = e.target.value;
+            performSearch(e.target.value);
+        });
+
+        searchInputMobile.addEventListener('input', (e) => {
+            searchInput.value = e.target.value;
+            performSearch(e.target.value);
+        });
+
+    </script>
+</body>
+</html>
